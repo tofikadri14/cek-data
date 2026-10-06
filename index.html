@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Retur Checker</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+--bg:#F8FAFC;--card:#fff;--ink:#0F172A;--mute:#64748B;--line:#E2E8F0;--ok:#16A34A;--okb:#F0FDF4;--wn:#F59E0B;--wnb:#FFFBEB;--wnt:#B45309;--bd:#DC2626;--bdb:#FEF2F2;--side:#0F172A}
+@media(prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#0B1220;--card:#111C30;--ink:#E2E8F0;--mute:#94A3B8;--line:#233049;--okb:#0F2A1B;--wnb:#2B2209;--wnt:#FBBF24;--bdb:#2E1316;--side:#060B16}}
+:root[data-theme=dark]{--bg:#0B1220;--card:#111C30;--ink:#E2E8F0;--mute:#94A3B8;--line:#233049;--okb:#0F2A1B;--wnb:#2B2209;--wnt:#FBBF24;--bdb:#2E1316;--side:#060B16}
+*,*:before,*:after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;font-variant-numeric:tabular-nums}
+header{background:var(--side);color:#fff;padding:12px 16px;position:sticky;top:env(safe-area-inset-top,0px);z-index:5}
+.brand{display:flex;align-items:center;gap:10px;margin-bottom:8px}.logo{width:32px;height:32px;border-radius:8px;background:var(--wn);color:#0F172A;display:grid;place-items:center;font-weight:800}
+.brand b{font-size:16px;display:block;line-height:1.1}.brand span{font-size:11px;color:#94A3B8}
+nav{display:flex;gap:4px;overflow-x:auto}nav button{background:none;border:0;border-bottom:3px solid transparent;color:#CBD5E1;padding:8px 12px;font:inherit;font-weight:600;white-space:nowrap;cursor:pointer}
+nav button.on{color:#fff;border-color:var(--wn)}
+main{max-width:1100px;margin:0 auto;padding:20px 16px 48px}
+h1{font-size:22px;margin:0 0 4px}h2{font-size:15px;margin:0 0 10px}.mute{color:var(--mute)}.sm{font-size:12px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;box-shadow:0 1px 2px rgba(15,23,42,.06);margin-bottom:14px}
+.grid{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));margin-bottom:14px}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px}.stat small{color:var(--mute);display:block}.stat b{font-size:22px}
+.ok{color:var(--ok)}.bd{color:var(--bd)}.wn{color:var(--wnt)}
+input,select,textarea{width:100%;min-height:44px;border:1px solid var(--line);border-radius:8px;padding:8px 12px;font:inherit;background:var(--card);color:var(--ink)}
+textarea{min-height:150px}
+.row{display:flex;gap:8px;flex-wrap:wrap}.row>input{flex:1 1 220px}
+.btn{min-height:44px;border:0;border-radius:8px;padding:0 18px;font:inherit;font-weight:700;background:var(--ink);color:var(--bg);cursor:pointer}
+.btn.o{background:var(--card);color:var(--ink);border:1px solid var(--line)}.btn.s{min-height:34px;padding:0 12px}
+.chip{min-height:34px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink);padding:0 12px;font:inherit;cursor:pointer}.chip.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.tw{overflow-x:auto}table{width:100%;border-collapse:collapse;min-width:640px}th{text-align:left;color:var(--mute);font-size:12px;border-bottom:1px solid var(--line);padding:8px 6px}td{padding:9px 6px;border-bottom:1px solid var(--line);vertical-align:top}
+tr.r td{background:var(--bdb)}tr.c{cursor:pointer}
+.b{display:inline-block;border:1px solid;border-radius:99px;padding:1px 10px;font-size:12px;font-weight:700;white-space:nowrap}
+.b.AMAN{background:var(--okb);color:var(--ok);border-color:var(--ok)}.b.PERHATIAN{background:var(--wnb);color:var(--wnt);border-color:var(--wn)}.b.TINGGI{background:var(--bdb);color:var(--bd);border-color:var(--bd)}.b.NEW{color:var(--mute);border-color:var(--line)}
+.verdict{border-left:8px solid var(--ok);display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}.verdict.TINGGI{border-color:var(--bd)}.verdict.PERHATIAN{border-color:var(--wn)}.verdict.NEW{border-color:var(--mute)}
+.drop{border:2px dashed var(--line);border-radius:12px;padding:36px 12px;text-align:center}.drop.h{border-color:var(--ink)}
+.err{color:var(--bd);font-weight:600;margin:8px 0}
+.bars{display:flex;align-items:flex-end;gap:3px;height:120px}.bars div{flex:1;display:flex;flex-direction:column-reverse;min-width:4px}.bars i{display:block}
+.two{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(300px,1fr))}
+dl{display:grid;grid-template-columns:110px 1fr;gap:4px 8px;margin:0}dt{color:var(--mute)}dd{margin:0}
+</style>
+</head>
+<body>
+<header>
+ <div class="brand"><div class="logo">↩</div><div><b>RETUR CHECKER</b><span>Cek Riwayat Order &amp; Risiko Retur Pelanggan</span></div></div>
+ <nav id="nav"></nav>
+</header>
+<main id="app"></main>
+<script>
+const $=s=>document.querySelector(s),esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const BLN='Januari Februari Maret April Mei Juni Juli Agustus September Oktober November Desember'.split(' ');
+const rp=v=>(v<0?'-':'')+'Rp'+String(Math.round(Math.abs(v))).replace(/\B(?=(\d{3})+(?!\d))/g,'.');
+const num=n=>String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g,'.');
+const pct=p=>(Math.round(p*10)/10+'').replace('.',',')+'%';
+const fd=i=>i?i.slice(8)+'/'+i.slice(5,7)+'/'+i.slice(0,4):'-';
+const fdi=i=>{if(!i)return'-';const[y,m,d]=i.split('-').map(Number);return d+' '+BLN[m-1]+' '+y};
+/* ---------- normalisasi nomor ---------- */
+function normPhone(p){if(p==null)return'';const r=String(p).trim();if(!r||/[%,]/.test(r)||/\d[eE][+-]?\d/.test(r))return'';let d=r.replace(/\D/g,'');if(!d)return'';
+ if(d.startsWith('0062'))d=d.slice(2);if(d.startsWith('620')&&d[3]==='8')d='62'+d.slice(3);
+ if(d.startsWith('08'))return'62'+d.slice(1);if(d.startsWith('8'))return'62'+d;return d}
+const validPhone=n=>!!n&&(n.startsWith('62')?/^62\d{8,13}$/.test(n):/^\d{8,15}$/.test(n));
+/* ---------- parser angka/tanggal ---------- */
+function rup(v){let s=String(v??'').trim();if(!s)return 0;const neg=s.includes('-')||/^\(.*\)$/.test(s);s=s.replace(/[^\d.,]/g,'');if(!s)return 0;
+ if(s.includes(','))s=s.replace(/\./g,'').replace(',','.');else if(/^\d{1,3}(\.\d{3})+$/.test(s))s=s.replace(/\./g,'');const n=parseFloat(s);return isFinite(n)?(neg?-n:n):0}
+function pd(raw){const s=String(raw??'').trim();let m,y,mo,d;if(m=s.match(/^(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{4})(?!\d)/)){d=+m[1];mo=+m[2];y=+m[3]}else if(m=s.match(/^(\d{4})-(\d{2})-(\d{2})/)){y=+m[1];mo=+m[2];d=+m[3]}else return null;
+ const t=new Date(Date.UTC(y,mo-1,d));if(t.getUTCFullYear()!==y||t.getUTCMonth()!==mo-1||t.getUTCDate()!==d)return null;return y+'-'+String(mo).padStart(2,'0')+'-'+String(d).padStart(2,'0')}
+/* ---------- kolom ---------- */
+const nk=s=>s.toLowerCase().replace(/[^a-z0-9]/g,'');
+const find=(h,al)=>{const m=new Map();h.forEach(x=>{const k=nk(x);k&&!m.has(k)&&m.set(k,x)});for(const a of al){const x=m.get(nk(a));if(x!==undefined)return x}return null};
+const A={phone:['phone','No HP','Nomor HP','nomor_hp','no_hp'],name:['name','nama'],oid:['order_id'],date:['Tanggal','date'],draft:['draft_time'],addr:['address','alamat'],prov:['province','provinsi'],city:['city','kota'],
+ rts:['rts_time'],tags:['tags'],product:['item_name','product_name','produk'],qty:['quantity','qty'],rev:['gross_revenue','revenue'],courier:['courier','ekspedisi'],resi:['Resi','tracking_number','receipt'],resi2:['shipment_receipt'],
+ ps:['Status Paket','status_paket','package_status'],agg:['Agregator'],ket:['Keterangan'],hpp:['HPP','cogs'],fee:['Fee'],profit:['Profit']};
+/* ---------- deteksi retur ---------- */
+const RW=/(^|[^a-z])(retur|returned|return|rts)([^a-z]|$)/i;
+function isRet(x){const s=(x.ps||'').trim().toLowerCase();return s==='returned'||s.includes('return')||s.includes('retur')||!!(x.rts||'').trim()||RW.test(x.ket||'')||RW.test(x.tags||'')}
+/* ---------- build order ---------- */
+function build(rows,h){const c={};for(const k in A)c[k]=find(h,A[k]);
+ if(!c.phone)throw new Error('Kolom nomor HP tidak ditemukan. Pastikan CSV memiliki kolom phone.');
+ const G=new Map(),rep={rows:rows.length,vp:0,ip:0,ep:0,rr:0,dr:0,bad:[]};
+ rows.forEach((r,i)=>{const g=k=>c[k]?String(r[c[k]]??'').trim():'';
+  const raw=g('phone'),n=normPhone(raw),ok=validPhone(n);
+  if(!raw)rep.ep++;else if(ok)rep.vp++;else{rep.ip++;rep.bad.length<5&&rep.bad.push(raw)}
+  const date=pd(g('date')||g('draft')),prod=g('product'),oid=g('oid'),pk=ok?n:raw;
+  let key=oid?'o:'+oid:'f:'+(date||'')+'|'+pk+'|'+prod;const cl=G.get(key);
+  if(oid&&cl&&(cl.b.np||cl.b.raw)!==pk)key='o:'+oid+'|'+pk; /* order_id sama tapi nomor beda = pelanggan beda */
+  const ret=isRet({ps:g('ps'),rts:g('rts'),ket:g('ket'),tags:g('tags')});ret?rep.rr++:rep.dr++;
+  const at={resi:g('resi')||g('resi2'),ps:g('ps'),ret,date,courier:g('courier'),agg:g('agg'),ket:g('ket'),hpp:rup(g('hpp')),fee:rup(g('fee')),profit:rup(g('profit'))};
+  const b={key,oid,seq:i,name:g('name'),raw,np:ok?n:'',city:g('city'),prov:g('prov'),addr:g('addr'),product:prod,qty:parseInt(g('qty'))||1,rev:rup(g('rev'))};
+  const id=at.resi||at.ps+at.date+at.profit,x=G.get(key);
+  if(x){x.b={...b,seq:x.b.seq};x.at.set(id,at)}else G.set(key,{b,at:new Map([[id,at]])})});
+ const S=(a,k)=>a.reduce((s,x)=>s+x[k],0);
+ const orders=[...G.values()].map(({b,at})=>{const a=[...at.values()].sort((x,y)=>(x.date||'').localeCompare(y.date||'')),R=a.some(x=>x.ret),L=a[a.length-1];
+  return{...b,date:a.find(x=>x.date)?.date||null,att:a,ret:R,resh:R&&a.some(x=>!x.ret&&/deliver/i.test(x.ps)),ps:R?'Returned':L.ps||'-',resis:[...new Set(a.map(x=>x.resi).filter(Boolean))],
+   courier:L.courier,agg:L.agg,ket:a.map(x=>x.ket).filter(Boolean).pop()||'',hpp:S(a,'hpp'),fee:S(a,'fee'),profit:S(a,'profit')}});
+ rep.orders=orders.length;rep.dup=rows.length-orders.length;return{orders,rep}}
+/* ---------- analitik ---------- */
+const risk=(n,r)=>n<=0?'NEW':r/n>=.4?'TINGGI':r/n>=.2?'PERHATIAN':'AMAN';
+const RM={NEW:['⚪','BELUM ORDER','CUSTOMER BARU / BELUM ADA RIWAYAT'],AMAN:['🟢','AMAN','CUSTOMER AMAN'],PERHATIAN:['🟡','PERHATIAN','PERLU PERHATIAN'],TINGGI:['🔴','RISIKO TINGGI','RISIKO TINGGI']};
+const newest=(a,b)=>(b.date||'').localeCompare(a.date||'')||b.seq-a.seq;
+const isDel=o=>!o.ret&&/deliver/i.test(o.ps);
+function summ(p,l){l=[...l].sort(newest);const rt=l.filter(o=>o.ret),n=l.length,r=rt.length,rev=l.reduce((s,o)=>s+o.rev,0),f=k=>l.find(o=>o[k])?.[k]||'';
+ return{p,name:f('name'),city:f('city'),prov:f('prov'),addr:f('addr'),l,n,del:l.filter(isDel).length,r,rate:n?r/n*100:0,risk:risk(n,r),freq:r>=2,rev,profit:l.reduce((s,o)=>s+o.profit,0),aov:n?rev/n:0,last:l[0],rt}}
+let DB=null,IDX=new Map(),ST=null;
+function load(orders,rep){DB={orders,rep};IDX=new Map();orders.forEach(o=>{if(o.np)(IDX.get(o.np)||IDX.set(o.np,[]).get(o.np)).push(o)});
+ const cu=[...IDX].map(([p,l])=>summ(p,l)),day=new Map(),pr=new Map();
+ orders.forEach(o=>{const d=o.date||'-',x=day.get(d)||{d,n:0,del:0,r:0};x.n++;o.ret?x.r++:isDel(o)&&x.del++;day.set(d,x);const q=o.product||'(tanpa produk)',y=pr.get(q)||{q,n:0,r:0};y.n++;o.ret&&y.r++;pr.set(q,y)});
+ const R=orders.filter(o=>o.ret).length,wr=cu.filter(c=>c.r>0).length;
+ ST={cust:IDX.size,n:orders.length,del:orders.filter(isDel).length,r:R,rate:orders.length?R/orders.length*100:0,wr,crate:IDX.size?wr/IDX.size*100:0,rev:orders.reduce((s,o)=>s+o.rev,0),profit:orders.reduce((s,o)=>s+o.profit,0),
+  day:[...day.values()].sort((a,b)=>a.d.localeCompare(b.d)),prod:[...pr.values()].sort((a,b)=>b.r-a.r),top:cu.filter(c=>c.r>0).sort((a,b)=>b.r-a.r||b.rate-a.rate||b.n-a.n).slice(0,15)}}
+/* ---------- tampilan ---------- */
+const badge=k=>`<span class="b ${k}">${RM[k][0]} ${RM[k][1]}</span>`;
+const pill=o=>`<span class="b ${o.ret?'TINGGI':'AMAN'}">${o.ret?'Returned':esc(o.ps)}</span>${o.resh?' <span class="b PERHATIAN">Dikirim ulang</span>':''}`;
+const stat=(l,v,c='')=>`<div class="stat"><small>${l}</small><b class="${c}">${v}</b></div>`;
+const NODATA='<div class="card"><b>Tidak ada database. Silakan upload CSV terlebih dahulu.</b><p><button class="btn" onclick="go(\'upload\')">Upload database</button></p></div>';
+function check(q){q=q.trim();if(!q)return'<p class="err">Masukkan nomor HP.</p>';const n=normPhone(q);if(!validPhone(n))return'<p class="err">Nomor HP tidak valid.</p>';if(!DB)return NODATA;
+ const l=IDX.get(n);if(!l)return`<div class="card verdict NEW"><div><h1>❌ BELUM PERNAH ORDER</h1><p class="mute">Nomor:<br><b>${esc(q)}</b></p><p>Tidak ditemukan riwayat order pada database.</p></div></div>`;
+ window.cur=summ(n,l);return cust(cur)}
+function cust(c){const m=RM[c.risk],t=c.risk==='TINGGI'?'bd':c.risk==='PERHATIAN'?'wn':'ok';
+ return`<div class="card verdict ${c.risk}"><div><h1>⚠️ PERNAH ORDER</h1><div class="mute">Nomor</div><b style="font-size:18px">${c.p}</b></div><div style="text-align:right"><div class="b ${c.risk}" style="font-size:15px;padding:6px 14px">${m[0]} ${m[2]}</div>${c.freq?'<div class="b TINGGI" style="margin-top:6px;font-size:14px">⚠️ SERING RETUR</div>':''}</div></div>
+ <div class="grid">${stat('Total order',c.n)}${stat('Delivered',c.del,'ok')}${stat('Returned',c.r,c.r?'bd':'')}${stat('Tingkat retur',pct(c.rate),t)}</div>
+ <div class="two"><div class="card"><h2>Profil customer</h2><dl><dt>Nama</dt><dd>${esc(c.name)||'-'}</dd><dt>Nomor HP</dt><dd>${c.p}</dd><dt>Kota</dt><dd>${esc(c.city)||'-'}</dd><dt>Provinsi</dt><dd>${esc(c.prov)||'-'}</dd><dt>Alamat terakhir</dt><dd>${esc(c.addr)||'-'}</dd></dl></div>
+ <div class="card"><h2>Ringkasan</h2><dl><dt>Total revenue</dt><dd>${rp(c.rev)}</dd><dt>Total profit</dt><dd class="${c.profit<0?'bd':''}">${rp(c.profit)}</dd><dt>Rata-rata order</dt><dd>${rp(c.aov)}</dd><dt>Order terakhir</dt><dd>${fdi(c.last.date)} · ${esc(c.last.product)}<br>${pill(c.last)} <span class="mute sm">Resi: ${esc(c.last.resis.join(', '))||'-'}</span></dd></dl></div></div>
+ ${c.r?`<div class="card" style="background:var(--bdb)"><h2 class="bd">⚠️ RIWAYAT RETUR</h2><p>Pelanggan ini pernah retur sebanyak <b>${c.r} kali</b> · Customer Return Rate: <b>${pct(c.rate)}</b></p>${c.rt.map(o=>`<p style="margin:6px 0">${fd(o.date)} · ${esc(o.product)} · Returned · Resi: ${esc(o.resis.join(', '))||'-'} · ${esc(o.courier)}</p>`).join('')}</div>`:''}
+ <div class="card"><h2>Riwayat order</h2><div class="row" style="margin-bottom:8px"><select id="hf" style="width:auto" onchange="hist()"><option value="a">Semua</option><option value="d">Delivered</option><option value="r">Returned</option></select>
+ <select id="hs" style="width:auto" onchange="hist()"><option value="n">Terbaru</option><option value="o">Terlama</option><option value="v">Nilai order terbesar</option><option value="p">Profit terbesar</option></select></div><div class="tw" id="ht">${histT(c.l)}</div></div>`}
+function histT(l){return`<table><tr>${['Tanggal','Order ID','Produk','Qty','Status','Resi','Ekspedisi','Nilai Order','Profit'].map(h=>`<th>${h}</th>`).join('')}</tr>${l.map(o=>`<tr class="${o.ret?'r':''}"><td>${fd(o.date)}</td><td>${esc(o.oid)||'-'}</td><td>${esc(o.product)}</td><td>${o.qty}</td><td>${pill(o)}</td><td>${o.resis.map(esc).join('<br>')||'-'}</td><td>${esc(o.courier)||'-'}</td><td>${rp(o.rev)}</td><td class="${o.profit<0?'bd':''}">${rp(o.profit)}</td></tr>`).join('')}</table>`}
+function hist(){let l=cur.l.filter(o=>{const f=$('#hf').value;return f==='a'||(f==='r')===o.ret});const s=$('#hs').value;
+ l.sort(s==='o'?(a,b)=>newest(b,a):s==='v'?(a,b)=>b.rev-a.rev:s==='p'?(a,b)=>b.profit-a.profit:newest);$('#ht').innerHTML=histT(l)}
+/* ---------- halaman ---------- */
+const TABS=[['dash','Dashboard'],['upload','Upload Database'],['cek','Cek Nomor HP'],['bulk','Cek Massal'],['retur','Data Retur']];
+let view='dash',BR=null,BF='all';
+function go(v){view=v;render()}
+function render(){$('#nav').innerHTML=TABS.map(([k,l])=>`<button class="${k===view?'on':''}" onclick="go('${k}')">${l}</button>`).join('');
+ const a=$('#app');a.innerHTML=({dash:vDash,upload:vUpload,cek:vCek,bulk:vBulk,retur:vRetur})[view]();({upload:wireUpload,bulk:()=>BR&&drawBulk(),retur:()=>DB&&drawRetur()})[view]?.()}
+function vDash(){return`<h1>RETUR CHECKER</h1><p class="mute">Cek Riwayat Order &amp; Risiko Retur Pelanggan</p>
+ <div class="card"><div class="row"><input id="q" placeholder="Cek nomor HP pelanggan..." inputmode="tel" style="min-height:52px;font-size:16px" onkeydown="if(event.key==='Enter')$('#qr').innerHTML=check(this.value)"><button class="btn" onclick="$('#qr').innerHTML=check($('#q').value)">CEK SEKARANG</button></div><div id="qr" style="margin-top:12px"></div></div>
+ ${!DB?NODATA:`<div class="grid">${stat('Total customer',num(ST.cust))}${stat('Total order',num(ST.n))}${stat('Delivered',num(ST.del),'ok')}${stat('Returned',num(ST.r),'bd')}${stat('Return rate',pct(ST.rate))}${stat('Customer return rate',pct(ST.crate))}${stat('Total revenue',rp(ST.rev))}${stat('Total profit',rp(ST.profit),ST.profit<0?'bd':'')}</div>
+ <div class="card"><h2>Order per tanggal (delivered / returned)</h2><div class="bars">${(mx=>ST.day.map(d=>`<div title="${fd(d.d)}: ${d.n} order, ${d.r} retur"><i style="height:${d.r/mx*100}%;background:var(--bd)"></i><i style="height:${(d.n-d.r)/mx*100}%;background:var(--ok)"></i></div>`).join(''))(Math.max(...ST.day.map(d=>d.n)))}</div></div>
+ <div class="two"><div class="card"><h2>Produk berdasarkan retur</h2><div class="tw"><table style="min-width:0"><tr><th>Produk</th><th>Order</th><th>Retur</th><th>Rate</th></tr>${ST.prod.map(p=>`<tr><td>${esc(p.q)}</td><td>${p.n}</td><td>${p.r}</td><td>${pct(p.r/p.n*100)}</td></tr>`).join('')}</table></div></div>
+ <div class="card"><h2>Top customer retur</h2><div class="tw"><table style="min-width:0"><tr><th>#</th><th>Nama</th><th>Phone</th><th>Order</th><th>Retur</th><th>Status</th></tr>${ST.top.map((c,i)=>`<tr><td>${i+1}</td><td>${esc(c.name)}</td><td>${c.p}</td><td>${c.n}</td><td>${c.r}</td><td>${badge(c.risk)}</td></tr>`).join('')}</table></div></div></div>`}`}
+function vCek(){return`<h1>Cek Nomor HP</h1><p class="mute">Format apa pun diterima: 0812..., +62812..., 62 812 ..., atau 812...</p><div class="card"><div class="row"><input id="q" placeholder="Cek nomor HP pelanggan..." inputmode="tel" onkeydown="if(event.key==='Enter')$('#qr').innerHTML=check(this.value)"><button class="btn" onclick="$('#qr').innerHTML=check($('#q').value)">CEK SEKARANG</button></div></div><div id="qr"></div>`}
+function vUpload(){return`<h1>Upload Database</h1><p class="mute">Unggah CSV rekap Scalev. Hanya kolom phone yang wajib. Data diproses di browser Anda dan tidak dikirim ke server.</p>
+ <div class="card"><div class="drop" id="dz"><p><b>Tarik file CSV ke sini</b></p><button class="btn" onclick="$('#fi').click()">Pilih file CSV</button><input type="file" id="fi" accept=".csv,text/csv" hidden></div><div id="ur"></div></div>`}
+function wireUpload(){const dz=$('#dz');['dragover','dragenter'].forEach(e=>dz.addEventListener(e,x=>{x.preventDefault();dz.classList.add('h')}));['dragleave','drop'].forEach(e=>dz.addEventListener(e,x=>{x.preventDefault();dz.classList.remove('h')}));
+ dz.addEventListener('drop',e=>read(e.dataTransfer.files[0]));$('#fi').onchange=e=>read(e.target.files[0]);if(DB)showRep()}
+function read(f){if(!f)return;const o=$('#ur');o.innerHTML='<p>Membaca file...</p>';
+ Papa.parse(f,{header:true,skipEmptyLines:'greedy',transformHeader:h=>h.replace(/^\uFEFF/,'').trim(),complete:r=>{try{const h=r.meta.fields||[];if(!h.length||!r.data.length)throw new Error('File CSV tidak dapat dibaca.');
+  const x=build(r.data,h);x.rep.file=f.name;load(x.orders,x.rep);BR=null;showRep()}catch(e){o.innerHTML=`<p class="err">${esc(e.message||'File CSV tidak dapat dibaca.')}</p>`}},error:()=>o.innerHTML='<p class="err">File CSV tidak dapat dibaca.</p>'})}
+function showRep(){const r=DB.rep;$('#ur').innerHTML=`<h2 class="ok" style="margin-top:14px">Import berhasil.</h2><p class="mute sm">${esc(r.file||'')}</p><div class="grid">${stat('Total row',num(r.rows))}${stat('Nomor valid',num(r.vp))}${stat('Nomor kosong',num(r.ep))}${stat('Nomor tidak valid',num(r.ip),r.ip?'wn':'')}${stat('Returned (baris)',num(r.rr),'bd')}${stat('Delivered (baris)',num(r.dr),'ok')}${stat('Order unik',num(r.orders))}${stat('Duplikat digabung',num(r.dup))}</div>
+ ${r.bad.length?`<p class="sm wn">Nomor tidak valid tidak ikut pencarian. Contoh: ${r.bad.map(esc).join(' | ')}</p>`:''}<button class="btn" onclick="go('cek')">Cek nomor HP</button>`}
+function vBulk(){return`<h1>Cek Nomor Massal</h1><p class="mute">Paste nomor dipisah baris, koma, atau titik koma. Duplikat dihapus otomatis.</p><div class="card"><textarea id="bt" placeholder="Paste nomor HP di sini, satu nomor per baris"></textarea><div class="row" style="margin-top:10px"><button class="btn" onclick="runBulk()">CEK SEMUA</button><span id="bp" class="mute" style="align-self:center"></span></div></div><div id="bo"></div>`}
+function runBulk(){const t=$('#bt').value,E=t.split(/[\r\n,;\t]+/).map(s=>s.trim()).filter(Boolean);if(!E.length){$('#bo').innerHTML='<p class="err">Masukkan nomor HP.</p>';return}if(!DB){$('#bo').innerHTML=NODATA;return}
+ $('#bp').textContent=`Memproses ${num(E.length)} nomor...`;setTimeout(()=>{const seen=new Set(),rows=[];let dup=0;
+ E.forEach(raw=>{const n=normPhone(raw),ok=validPhone(n),k=ok?n:'r:'+raw;if(seen.has(k)){dup++;return}seen.add(k);const l=ok&&IDX.get(n),c=l?summ(n,l):null;rows.push({raw,n:ok?n:'',ok,c})});
+ BR={rows,dup,n:E.length};BF='all';$('#bp').textContent='';drawBulk()},30)}
+const BFL=[['all','Semua'],['found','Pernah Order'],['no','Belum Pernah Order'],['ret','Pernah Retur'],['nr','Tidak Pernah Retur'],['TINGGI','🔴 Risiko Tinggi'],['PERHATIAN','🟡 Perhatian'],['AMAN','🟢 Aman']];
+const bfil=(r,f)=>f==='all'||(f==='found'&&r.c)||(f==='no'&&r.ok&&!r.c)||(f==='ret'&&r.c?.r>0)||(f==='nr'&&r.c&&r.c.r===0)||(r.c?.risk===f&&['TINGGI','PERHATIAN','AMAN'].includes(f));
+function drawBulk(){const R=BR.rows,V=R.filter(r=>r.ok),F=R.filter(r=>bfil(r,BF));$('#bo').innerHTML=`<p><b>${num(V.length)} nomor diperiksa</b>${BR.dup?` · ${BR.dup} duplikat dihapus`:''}${V.length<R.length?` · <span class="bd">${R.length-V.length} tidak valid</span>`:''}</p>
+ <div class="grid">${stat('Ditemukan',V.filter(r=>r.c).length)}${stat('Belum pernah order',V.filter(r=>!r.c).length)}${stat('Pernah retur',V.filter(r=>r.c?.r>0).length,'wn')}${stat('Risiko tinggi',V.filter(r=>r.c?.risk==='TINGGI').length,'bd')}</div>
+ <div class="card"><div class="row" style="margin-bottom:10px;justify-content:space-between"><div class="row">${BFL.map(([k,l])=>`<button class="chip ${k===BF?'on':''}" onclick="BF='${k}';drawBulk()">${l}</button>`).join('')}</div><button class="btn o s" onclick="expBulk()">Unduh CSV (${F.length})</button></div>
+ <div class="tw"><table><tr>${['No','Nomor HP','Nama','Pernah Order','Total Order','Retur','Delivered','Return Rate','Status'].map(h=>`<th>${h}</th>`).join('')}</tr>${F.slice(0,200).map((r,i)=>{const c=r.c;return`<tr class="${c?'c':''}" ${c?`onclick="$('#bd').innerHTML=cust(window.cur=summ('${r.n}',IDX.get('${r.n}')));$('#bd').scrollIntoView()"`:''}><td>${i+1}</td><td>${esc(r.ok?r.n:r.raw)}</td><td>${c?esc(c.name):'-'}</td><td>${r.ok?c?'YA':'TIDAK':'-'}</td><td>${c?c.n:0}</td><td>${c?c.r:0}</td><td>${c?c.del:0}</td><td>${c?pct(c.rate):'-'}</td><td>${r.ok?badge(c?c.risk:'NEW')+(c?.freq?' ⚠️':''):'<span class="bd">Nomor tidak valid</span>'}</td></tr>`}).join('')}</table></div>${F.length>200?`<p class="sm mute">Menampilkan 200 pertama. Unduh CSV untuk semua.</p>`:''}<p class="sm mute">Klik baris untuk melihat detail pelanggan.</p></div><div id="bd"></div>`}
+function expBulk(){const H=['Nomor HP','Nomor HP Normalized','Nama','Pernah Order','Total Order','Delivered','Returned','Return Rate','Status Risiko','Order Terakhir','Produk Terakhir','Total Revenue','Total Profit'];
+ const cell=v=>{let s=String(v??'');if(/^[=+\-@]/.test(s)&&!/^-?\d+([.,]\d+)?$/.test(s))s="'"+s;return/[",\n]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s};
+ const L=BR.rows.filter(r=>bfil(r,BF)).map(r=>{const c=r.c;return[r.raw,r.n||'(tidak valid)',c?.name||'',c?'YA':'TIDAK',c?.n||0,c?.del||0,c?.r||0,c?pct(c.rate):'-',r.ok?RM[c?c.risk:'NEW'][1]:'NOMOR TIDAK VALID',c?.last.date||'',c?.last.product||'',c?.rev||0,c?.profit||0].map(cell).join(',')});
+ const d=new Date(),ds=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+ const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['\uFEFF'+[H.join(','),...L].join('\r\n')],{type:'text/csv;charset=utf-8'}));a.download='hasil-cek-retur-'+ds+'.csv';a.click()}
+function vRetur(){return!DB?`<h1>Database Retur</h1>${NODATA}`:`<h1>Database Retur</h1><p class="mute">Order dengan indikator retur (Status Paket Returned, rts_time, atau keterangan retur).</p><div class="card"><input id="rq" placeholder="Cari nomor HP, nama, order ID, atau resi..." oninput="drawRetur()"><p id="rc" class="sm mute"></p><div class="tw" id="rt"></div></div>`}
+function drawRetur(){const q=$('#rq').value.trim().toLowerCase(),dg=q.replace(/\D/g,'').replace(/^(0|62)/,'');
+ const L=DB.orders.filter(o=>o.ret&&(!q||o.name.toLowerCase().includes(q)||o.oid.toLowerCase().includes(q)||o.resis.some(r=>r.toLowerCase().includes(q))||(dg.length>=4&&o.np.includes(dg)))).sort(newest);
+ $('#rc').textContent=`${num(L.length)} order retur`+(L.length>100?' (menampilkan 100 pertama)':'');
+ $('#rt').innerHTML=`<table style="min-width:900px"><tr>${['Tanggal','Order ID','Nama','Nomor HP','Produk','Qty','Resi','Ekspedisi','Agregator','Keterangan','Revenue','HPP','Fee','Profit'].map(h=>`<th>${h}</th>`).join('')}</tr>${L.slice(0,100).map(o=>`<tr><td>${fd(o.date)}</td><td>${esc(o.oid)||'-'}</td><td>${esc(o.name)}</td><td>${o.np||esc(o.raw)}</td><td>${esc(o.product)}</td><td>${o.qty}</td><td>${o.resis.map(esc).join('<br>')||'-'}</td><td>${esc(o.courier)}</td><td>${esc(o.agg)}</td><td>${esc(o.ket)||'-'}</td><td>${rp(o.rev)}</td><td>${rp(o.hpp)}</td><td>${rp(o.fee)}</td><td class="${o.profit<0?'bd':''}">${rp(o.profit)}</td></tr>`).join('')}</table>`}
+render();
+</script>
+</body>
+</html>
